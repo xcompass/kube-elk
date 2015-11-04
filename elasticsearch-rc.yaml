@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: elasticsearch
+  namespace: default
+  labels:
+    component: elk
+    role: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    component: elk
+    role: elasticsearch
+  template:
+    metadata:
+      labels:
+        component: elk
+        role: elasticsearch
+    spec:
+      serviceAccount: elk
+      containers:
+      - name: elasticsearch
+        image: elasticsearch
+        args: ['-Des.network.bind_host=0.0.0.0']
+        #env:
+        #- name: KUBERNETES_TRUST_CERT
+        #  value: "true"
+        ports:
+        - containerPort: 9200
+          name: es
+          protocol: TCP
+        - containerPort: 9300
+          name: es-https
+          protocol: TCP
+        volumeMounts:
+        - name: ec-nfs
+          mountPath: /usr/share/elasticsearch/data
+      volumes:
+      - name: ec-nfs
+        persistentVolumeClaim:
+          claimName: ec-nfs
+      #  source:
+      #    emptyDir: {}
+      #- name: certs
+      #  source:
+      #    hostPath:
+      #      path: /tmp
